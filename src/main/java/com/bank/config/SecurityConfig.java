@@ -1,5 +1,7 @@
 package com.bank.config;
 
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,19 +16,26 @@ public class SecurityConfig {
 	@Autowired
 	private JwtFilter jwtFilter;
 	@Bean
-	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
 	    http
 	        .csrf(csrf -> csrf.disable())
 	        .authorizeHttpRequests(auth -> auth
-	            .requestMatchers("/api/users/login",
-	                             "/api/users/register",
-	                             "/swagger-ui/**",
-	                             "/v3/api-docs/**").permitAll()
+	            .requestMatchers(
+	                "/api/users/login",
+	                "/api/users/register",
+	                "/v3/api-docs/**",
+	                "/swagger-ui/**",
+	                "/swagger-ui.html"
+	            ).permitAll()
 	            .anyRequest().authenticated()
 	        )
-	        .addFilterBefore(jwtFilter,
-	                org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
+	        .sessionManagement(session -> 
+	            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+	        )
+	        .addFilterBefore(jwtFilter, 
+	            UsernamePasswordAuthenticationFilter.class
+	        );
 
 	    return http.build();
 	}
